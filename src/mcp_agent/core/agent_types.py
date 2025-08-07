@@ -4,7 +4,7 @@ Type definitions for agents and agent configurations.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from mcp.client.session import ElicitationFnT
 
@@ -43,6 +43,11 @@ class AgentConfig:
     default: bool = False
     elicitation_handler: ElicitationFnT | None = None
     api_key: str | None = None
+    pre_tool_call_hook: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None
+    """Optional function to modify tool call requests before execution.
+    This function should accept a tool call ID and a CallToolRequest object,
+    and return a modified CallToolRequest object.
+    """
 
     def __post_init__(self):
         """Ensure default_request_params exists with proper history setting"""

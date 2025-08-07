@@ -66,6 +66,8 @@ class MCPAggregator(ContextDependent):
     server_names: List[str]
     """A list of server names to connect to."""
 
+    pre_tool_call_hook: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None
+
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
 
     async def __aenter__(self):
@@ -204,6 +206,17 @@ class MCPAggregator(ContextDependent):
         async with self._prompt_cache_lock:
             self._prompt_cache.clear()
 
+        self.pre_tool_call_hook = None
+
+        # read pre_tool_call_hook from agent config. Fetch agent config using agent_name first
+        if self.agent_name:
+            # Import here to avoid circular dependency
+            from mcp_agent.agents.base_agent import BaseAgent
+
+            # Check if this aggregator is part of an Agent (which has config)
+            if isinstance(self, BaseAgent):
+                self.pre_tool_call_hook = self.config.pre_tool_call_hook
+
         for server_name in self.server_names:
             if self.connection_persistence:
                 logger.info(
@@ -249,6 +262,7 @@ class MCPAggregator(ContextDependent):
                 await self._persistent_connection_manager.get_server(
                     server_name, client_session_factory=session_factory
                 )
+                
 
             logger.info(
                 f"MCP Servers initialized for agent '{self.agent_name}'",
@@ -582,6 +596,8 @@ class MCPAggregator(ContextDependent):
                 isError=True,
                 content=[TextContent(type="text", text=f"Tool '{name}' not found")],
             )
+        
+        self.list_servers
 
         logger.info(
             "Requesting tool call",
@@ -597,6 +613,30 @@ class MCPAggregator(ContextDependent):
         with tracer.start_as_current_span(f"MCP Tool: {server_name}/{local_tool_name}"):
             trace.get_current_span().set_attribute("tool_name", local_tool_name)
             trace.get_current_span().set_attribute("server_name", server_name)
+
+            # get metadata to stuff
+            extra_meta: Dict[str, Any] = {}
+            if self.pre_tool_call_hook:
+                try:
+                    extra_meta = self.pre_tool_call_hook({
+                        "server_name": server_name,
+                        "local_tool_name": local_tool_name,
+                        "arguments": arguments or {},
+                        "agent_name": self.agent_name,
+                        "initial_meta": {
+                            "uid": "dummy_uid",  # Placeholder, replace with actual UID if needed
+                        }
+                    })
+                except Exception as e:
+                    logger.error(f"Error in pre_tool_call_hook: {e}")
+                    extra_meta = {
+                        "error": f"Error in pre_tool_call_hook: {e}",
+                    }
+            else:
+                extra_meta = {
+                    "error": "No pre_tool_call_hook",
+                }
+
             return await self._execute_on_server(
                 server_name=server_name,
                 operation_type="tool",
@@ -605,6 +645,7 @@ class MCPAggregator(ContextDependent):
                 method_args={
                     "name": local_tool_name,
                     "arguments": arguments,
+                    "extra_meta": extra_meta
                 },
                 error_factory=lambda msg: CallToolResult(
                     isError=True, content=[TextContent(type="text", text=msg)]
