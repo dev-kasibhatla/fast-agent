@@ -12,6 +12,7 @@ from typing import (
 
 from mcp import GetPromptResult, ReadResourceResult
 from mcp.client.session import ClientSession
+from mcp.shared.session import ProgressFnT
 from mcp.types import (
     CallToolResult,
     ListToolsResult,
@@ -137,6 +138,24 @@ class MCPAggregator(ContextDependent):
 
         # Lock for refreshing tools from a server
         self._refresh_lock = Lock()
+
+    def _create_progress_callback(self, server_name: str, tool_name: str) -> "ProgressFnT":
+        """Create a progress callback function for tool execution."""
+        async def progress_callback(progress: float, total: float | None, message: str | None) -> None:
+            """Handle progress notifications from MCP tool execution."""
+            logger.info(
+                "Tool progress update",
+                data={
+                    "progress_action": ProgressAction.TOOL_PROGRESS,
+                    "tool_name": tool_name,
+                    "server_name": server_name,
+                    "agent_name": self.agent_name,
+                    "progress": progress,
+                    "total": total,
+                    "details": message or "",  # Put the message in details column
+                },
+            )
+        return progress_callback
 
     async def close(self) -> None:
         """
@@ -482,6 +501,7 @@ class MCPAggregator(ContextDependent):
         method_name: str,
         method_args: Dict[str, Any] = None,
         error_factory: Callable[[str], R] = None,
+        progress_callback: ProgressFnT | None = None,
     ) -> R:
         """
         Generic method to execute operations on a specific server.
@@ -493,6 +513,7 @@ class MCPAggregator(ContextDependent):
             method_name: Name of the method to call on the client session
             method_args: Arguments to pass to the method
             error_factory: Function to create an error return value if the operation fails
+            progress_callback: Optional progress callback for operations that support it
 
         Returns:
             Result from the operation or an error result
@@ -501,7 +522,12 @@ class MCPAggregator(ContextDependent):
         async def try_execute(client: ClientSession):
             try:
                 method = getattr(client, method_name)
-                return await method(**method_args)
+                # For call_tool method, check if we need to add progress_callback
+                if method_name == "call_tool" and progress_callback:
+                    # The call_tool method signature includes progress_callback parameter
+                    return await method(**method_args, progress_callback=progress_callback)
+                else:
+                    return await method(**method_args)
             except Exception as e:
                 error_msg = (
                     f"Failed to {method_name} '{operation_name}' on server '{server_name}': {e}"
@@ -635,6 +661,10 @@ class MCPAggregator(ContextDependent):
                     "error": "No pre_tool_call_hook",
                 }
 
+            
+            # Create progress callback for this tool execution
+            progress_callback = self._create_progress_callback(server_name, local_tool_name)
+            
             return await self._execute_on_server(
                 server_name=server_name,
                 operation_type="tool",
@@ -648,6 +678,7 @@ class MCPAggregator(ContextDependent):
                 error_factory=lambda msg: CallToolResult(
                     isError=True, content=[TextContent(type="text", text=msg)]
                 ),
+                progress_callback=progress_callback,
             )
 
     async def get_prompt(
