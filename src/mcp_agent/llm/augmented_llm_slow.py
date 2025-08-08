@@ -1,6 +1,7 @@
 import asyncio
 from typing import Any, List, Optional, Union
 
+from mcp_agent.core import request_params
 from mcp_agent.llm.augmented_llm import (
     MessageParamT,
     RequestParams,
@@ -47,7 +48,9 @@ class SlowLLM(PassthroughLLM):
         self,
         multipart_messages: List["PromptMessageMultipart"],
         request_params: RequestParams | None = None,
+        is_template: bool = False,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """Sleep for 3 seconds then apply prompt like PassthroughLLM."""
         await asyncio.sleep(3)
-        return await super()._apply_prompt_provider_specific(multipart_messages, request_params)
+        return await super()._apply_prompt_provider_specific(multipart_messages, request_params, request_id=request_id)

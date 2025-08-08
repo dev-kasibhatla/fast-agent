@@ -163,6 +163,7 @@ class PassthroughLLM(AugmentedLLM):
         multipart_messages: List["PromptMessageMultipart"],
         request_params: RequestParams | None = None,
         is_template: bool = False,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         # Add messages to history with proper is_prompt flag
         self.history.extend(multipart_messages, is_prompt=is_template)

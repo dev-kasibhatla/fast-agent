@@ -190,6 +190,7 @@ class RouterAgent(BaseAgent):
         self,
         multipart_messages: List[PromptMessageMultipart],
         request_params: Optional[RequestParams] = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """
         Route the request to the most appropriate agent and return its response.
@@ -212,7 +213,7 @@ class RouterAgent(BaseAgent):
             agent: Agent = self.agent_map[route.agent]
 
             # Dispatch the request to the selected agent
-            return await agent.generate(multipart_messages, request_params)
+            return await agent.generate(multipart_messages, request_params, request_id=request_id)
 
     async def structured(
         self,

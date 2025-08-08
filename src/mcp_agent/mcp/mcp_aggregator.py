@@ -580,7 +580,7 @@ class MCPAggregator(ContextDependent):
         # For all other resource types, use the first server
         return (self.server_names[0] if self.server_names else None, name)
 
-    async def call_tool(self, name: str, arguments: dict | None = None) -> CallToolResult:
+    async def call_tool(self, name: str, arguments: dict | None = None, request_id: Optional[str] = None) -> CallToolResult:
         """
         Call a namespaced tool, e.g., 'server_name-tool_name'.
         """
@@ -597,8 +597,6 @@ class MCPAggregator(ContextDependent):
                 content=[TextContent(type="text", text=f"Tool '{name}' not found")],
             )
         
-        self.list_servers
-
         logger.info(
             "Requesting tool call",
             data={
@@ -624,7 +622,7 @@ class MCPAggregator(ContextDependent):
                         "arguments": arguments or {},
                         "agent_name": self.agent_name,
                         "initial_meta": {
-                            "uid": "dummy_uid",  # Placeholder, replace with actual UID if needed
+                            "req_id": request_id,
                         }
                     })
                 except Exception as e:

@@ -1,4 +1,5 @@
-from typing import Any, List, Type, Union
+
+from typing import Any, List, Optional, Type, Union
 
 from mcp.types import PromptMessage
 
@@ -55,6 +56,7 @@ class PlaybackLLM(PassthroughLLM):
         self,
         multipart_messages: List[Union[PromptMessageMultipart, PromptMessage]],
         request_params: RequestParams | None = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """
         Handle playback of messages in two modes:

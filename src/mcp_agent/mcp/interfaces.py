@@ -123,6 +123,7 @@ class AugmentedLLMProtocol(Protocol):
         self,
         multipart_messages: List[Union[PromptMessageMultipart, PromptMessage]],
         request_params: RequestParams | None = None,
+        request_id: str | None = None,
     ) -> PromptMessageMultipart:
         """
         Apply a list of PromptMessageMultipart messages directly to the LLM.
@@ -131,6 +132,7 @@ class AugmentedLLMProtocol(Protocol):
         Args:
             multipart_messages: List of PromptMessageMultipart objects
             request_params: Optional parameters to configure the LLM request
+            request_id: Optional unique identifier for the request, useful for tracking or logging
 
         Returns:
             A PromptMessageMultipart containing the Assistant response, including Tool Content
@@ -179,7 +181,7 @@ class AgentProtocol(AugmentedLLMProtocol, Protocol):
         """Make the agent callable for sending messages directly."""
         ...
 
-    async def send(self, message: Union[str, PromptMessage, PromptMessageMultipart]) -> str:
+    async def send(self, message: Union[str, PromptMessage, PromptMessageMultipart], request_id: Optional[str] = None) -> str:
         """Send a message to the agent and get a response"""
         ...
 

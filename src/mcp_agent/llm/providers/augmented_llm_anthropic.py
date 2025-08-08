@@ -1,5 +1,5 @@
 import json
-from typing import TYPE_CHECKING, Any, List, Tuple, Type
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Type
 
 from mcp.types import TextContent
 
@@ -558,6 +558,7 @@ class AnthropicAugmentedLLM(AugmentedLLM[MessageParam, Message]):
         self,
         message_param,
         request_params: RequestParams | None = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """
         Process a query using an LLM and available tools.
@@ -579,6 +580,7 @@ class AnthropicAugmentedLLM(AugmentedLLM[MessageParam, Message]):
         multipart_messages: List["PromptMessageMultipart"],
         request_params: RequestParams | None = None,
         is_template: bool = False,
+        request_id: Optional[str] = None
     ) -> PromptMessageMultipart:
         # Check the last message role
         last_message = multipart_messages[-1]
@@ -614,7 +616,7 @@ class AnthropicAugmentedLLM(AugmentedLLM[MessageParam, Message]):
         if last_message.role == "user":
             self.logger.debug("Last message in prompt is from user, generating assistant response")
             message_param = AnthropicConverter.convert_to_anthropic(last_message)
-            return await self.generate_messages(message_param, request_params)
+            return await self.generate_messages(message_param, request_params, request_id=request_id)
         else:
             # For assistant messages: Return the last message content as text
             self.logger.debug("Last message in prompt is from assistant, returning it directly")
