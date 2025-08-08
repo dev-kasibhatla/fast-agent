@@ -206,6 +206,7 @@ class AugmentedLLM(ContextDependent, AugmentedLLMProtocol, Generic[MessageParamT
         self,
         multipart_messages: List[Union[PromptMessageMultipart, PromptMessage]],
         request_params: RequestParams | None = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """
         Create a completion with the LLM using the provided messages.
@@ -233,7 +234,7 @@ class AugmentedLLM(ContextDependent, AugmentedLLMProtocol, Generic[MessageParamT
         self._precall(multipart_messages)
 
         assistant_response: PromptMessageMultipart = await self._apply_prompt_provider_specific(
-            multipart_messages, request_params
+            multipart_messages, request_params, request_id=request_id
         )
 
         # add generic error and termination reason handling/rollback
@@ -247,6 +248,7 @@ class AugmentedLLM(ContextDependent, AugmentedLLMProtocol, Generic[MessageParamT
         multipart_messages: List["PromptMessageMultipart"],
         request_params: RequestParams | None = None,
         is_template: bool = False,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """
         Provider-specific implementation of apply_prompt_template.
@@ -326,6 +328,7 @@ class AugmentedLLM(ContextDependent, AugmentedLLMProtocol, Generic[MessageParamT
         multipart_messages: List[PromptMessageMultipart],
         model: Type[ModelT],
         request_params: RequestParams | None = None,
+        request_id: Optional[str] = None
     ) -> Tuple[ModelT | None, PromptMessageMultipart]:
         """Base class attempts to parse JSON - subclasses can use provider specific functionality"""
 
@@ -337,7 +340,7 @@ class AugmentedLLM(ContextDependent, AugmentedLLMProtocol, Generic[MessageParamT
                 request_params.response_format = schema
 
         result: PromptMessageMultipart = await self._apply_prompt_provider_specific(
-            multipart_messages, request_params
+            multipart_messages, request_params, request_id=request_id
         )
         return self._structured_from_multipart(result, model)
 
@@ -510,6 +513,7 @@ class AugmentedLLM(ContextDependent, AugmentedLLMProtocol, Generic[MessageParamT
         self,
         request: CallToolRequest,
         tool_call_id: str | None = None,
+        request_id: Optional[str] = None,
     ) -> CallToolResult:
         """Call a tool with the given parameters and optional ID"""
 
@@ -533,9 +537,17 @@ class AugmentedLLM(ContextDependent, AugmentedLLMProtocol, Generic[MessageParamT
             else:
                 request = preprocess
 
+            await self.show_assistant_message(
+                Text(
+                    f"Calling tool '{request.params.name}' with request id: {request_id}",
+                    style="dim green italic",
+                ),
+                highlight_namespaced_tool=request.params.name,
+            )
+
             tool_name = request.params.name
             tool_args = request.params.arguments
-            result = await self.aggregator.call_tool(tool_name, tool_args)
+            result = await self.aggregator.call_tool(tool_name, tool_args, request_id=request_id)
 
             postprocess = await self.post_tool_call(
                 tool_call_id=tool_call_id, request=request, result=result

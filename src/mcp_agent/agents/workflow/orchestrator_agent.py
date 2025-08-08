@@ -92,6 +92,7 @@ class OrchestratorAgent(BaseAgent):
         self,
         multipart_messages: List[PromptMessageMultipart],
         request_params: Optional[RequestParams] = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """
         Execute an orchestrated plan to process the input.

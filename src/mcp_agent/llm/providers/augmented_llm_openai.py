@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from mcp.types import (
     CallToolRequest,
@@ -298,6 +298,7 @@ class OpenAIAugmentedLLM(AugmentedLLM[ChatCompletionMessageParam, ChatCompletion
         self,
         message: OpenAIMessage,
         request_params: RequestParams | None = None,
+        request_id: Optional[str] = None
     ) -> List[ContentBlock]:
         """
         Process a query using an LLM and available tools.
@@ -440,7 +441,7 @@ class OpenAIAugmentedLLM(AugmentedLLM[ChatCompletionMessageParam, ChatCompletion
                     )
 
                     try:
-                        result = await self.call_tool(tool_call_request, tool_call.id)
+                        result = await self.call_tool(tool_call_request, tool_call.id, request_id=request_id)
                         self.show_tool_result(result)
                         tool_results.append((tool_call.id, result))
                         responses.extend(result.content)
@@ -512,6 +513,7 @@ class OpenAIAugmentedLLM(AugmentedLLM[ChatCompletionMessageParam, ChatCompletion
         multipart_messages: List["PromptMessageMultipart"],
         request_params: RequestParams | None = None,
         is_template: bool = False,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         # Reset tool call counter for new turn
         self._reset_turn_tool_calls()
@@ -538,6 +540,7 @@ class OpenAIAugmentedLLM(AugmentedLLM[ChatCompletionMessageParam, ChatCompletion
         responses: List[ContentBlock] = await self._openai_completion(
             message_param,
             request_params,
+            request_id=request_id,
         )
         return Prompt.assistant(*responses)
 

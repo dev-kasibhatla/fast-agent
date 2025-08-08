@@ -52,6 +52,7 @@ class ParallelAgent(BaseAgent):
         self,
         multipart_messages: List[PromptMessageMultipart],
         request_params: Optional[RequestParams] = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """
         Execute fan-out agents in parallel and aggregate their results with the fan-in agent.
@@ -69,7 +70,7 @@ class ParallelAgent(BaseAgent):
             # Execute all fan-out agents in parallel
             responses: List[PromptMessageMultipart] = await asyncio.gather(
                 *[
-                    agent.generate(multipart_messages, request_params)
+                    agent.generate(multipart_messages, request_params, request_id=request_id)
                     for agent in self.fan_out_agents
                 ]
             )

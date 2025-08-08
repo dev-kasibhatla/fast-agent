@@ -8,6 +8,7 @@ import inspect
 from functools import wraps
 from pathlib import Path
 from typing import (
+    Any,
     Awaitable,
     Callable,
     Dict,
@@ -188,6 +189,7 @@ def _decorator_impl(
     tools: Optional[Dict[str, List[str]]] = None,
     resources: Optional[Dict[str, List[str]]] = None,
     prompts: Optional[Dict[str, List[str]]] = None,
+    pre_tool_call_hook: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None,
     **extra_kwargs,
 ) -> Callable[[AgentCallable[P, R]], DecoratedAgentProtocol[P, R]]:
     """
@@ -237,6 +239,7 @@ def _decorator_impl(
             default=default,
             elicitation_handler=extra_kwargs.get("elicitation_handler"),
             api_key=extra_kwargs.get("api_key"),
+            pre_tool_call_hook=pre_tool_call_hook,
         )
 
         # Update request params if provided
@@ -285,6 +288,7 @@ def agent(
     default: bool = False,
     elicitation_handler: Optional[ElicitationFnT] = None,
     api_key: str | None = None,
+    pre_tool_call_hook: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None,
 ) -> Callable[[AgentCallable[P, R]], DecoratedAgentProtocol[P, R]]:
     """
     Decorator to create and register a standard agent with type-safe signature.
@@ -304,6 +308,7 @@ def agent(
         default: Whether to mark this as the default agent
         elicitation_handler: Custom elicitation handler function (ElicitationFnT)
         api_key: Optional API key for the LLM provider
+        pre_tool_call_hook: Optional function to modify tool call requests before execution, must return a dict
 
     Returns:
         A decorator that registers the agent with proper type annotations
@@ -329,6 +334,7 @@ def agent(
         resources=resources,
         prompts=prompts,
         api_key=api_key,
+        pre_tool_call_hook=pre_tool_call_hook,
     )
 
 

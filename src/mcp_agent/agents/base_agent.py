@@ -204,11 +204,11 @@ class BaseAgent(MCPAggregator, AgentProtocol):
             return await self.send(message)
         return await self.prompt(default_prompt=default_prompt)
 
-    async def generate_str(self, message: str, request_params: RequestParams | None) -> str:
+    async def generate_str(self, message: str, request_params: RequestParams | None = None) -> str:
         result: PromptMessageMultipart = await self.generate([Prompt.user(message)], request_params)
         return result.first_text()
 
-    async def send(self, message: Union[str, PromptMessage, PromptMessageMultipart]) -> str:
+    async def send(self, message: Union[str, PromptMessage, PromptMessageMultipart], request_id: str | None = None) -> str:
         """
         Send a message to the agent and get a response.
 
@@ -225,7 +225,7 @@ class BaseAgent(MCPAggregator, AgentProtocol):
         prompt = self._normalize_message_input(message)
 
         # Use the LLM to generate a response
-        response = await self.generate([prompt], None)
+        response = await self.generate([prompt], request_id=request_id)
         return response.all_text()
 
     def _normalize_message_input(
@@ -394,7 +394,7 @@ class BaseAgent(MCPAggregator, AgentProtocol):
 
         return result
 
-    async def call_tool(self, name: str, arguments: Dict[str, Any] | None = None) -> CallToolResult:
+    async def call_tool(self, name: str, arguments: Dict[str, Any] | None = None, request_id: Optional[str] = None) -> CallToolResult:
         """
         Call a tool by name with the given arguments.
 
@@ -409,7 +409,7 @@ class BaseAgent(MCPAggregator, AgentProtocol):
             # Call the human input tool
             return await self._call_human_input_tool(arguments)
         else:
-            return await super().call_tool(name, arguments)
+            return await super().call_tool(name, arguments, request_id=request_id)
 
     async def _call_human_input_tool(
         self, arguments: Dict[str, Any] | None = None
@@ -640,8 +640,9 @@ class BaseAgent(MCPAggregator, AgentProtocol):
 
     async def generate(
         self,
-        multipart_messages: List[PromptMessageMultipart],
+        multipart_messages: List[Union[PromptMessageMultipart, PromptMessage]],
         request_params: RequestParams | None = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """
         Create a completion with the LLM using the provided messages.
@@ -656,7 +657,7 @@ class BaseAgent(MCPAggregator, AgentProtocol):
         """
         assert self._llm
         with self.tracer.start_as_current_span(f"Agent: '{self.name}' generate"):
-            return await self._llm.generate(multipart_messages, request_params)
+            return await self._llm.generate(multipart_messages, request_params, request_id=request_id)
 
     async def apply_prompt_template(self, prompt_result: GetPromptResult, prompt_name: str) -> str:
         """

@@ -108,6 +108,7 @@ class EvaluatorOptimizerAgent(BaseAgent):
         self,
         multipart_messages: List[PromptMessageMultipart],
         request_params: Optional[RequestParams] = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """
         Generate a response through evaluation-guided refinement.

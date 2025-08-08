@@ -56,6 +56,7 @@ class ChainAgent(BaseAgent):
         self,
         multipart_messages: List[PromptMessageMultipart],
         request_params: Optional[RequestParams] = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """
         Chain the request through multiple agents in sequence.
