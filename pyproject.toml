@@ -15,7 +15,7 @@ classifiers = [
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.6",
-    "mcp==1.12.1",
+    "mcp==1.12.3",
     "opentelemetry-distro>=0.55b0",
     "opentelemetry-exporter-otlp-proto-http>=1.7.0",
     "pydantic-settings>=2.7.0",
@@ -136,3 +136,6 @@ ignore=["E501"]
 # More lenient settings for existing code
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["ANN"]  # Don't require type annotations in tests
+
+[tool.uv.sources]
+mcp = { git = "https://github.com/dev-kasibhatla/mcp-python-sdk" }
