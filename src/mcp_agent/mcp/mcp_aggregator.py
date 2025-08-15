@@ -642,7 +642,7 @@ class MCPAggregator(ContextDependent):
             extra_meta: Dict[str, Any] = {}
             if self.pre_tool_call_hook:
                 try:
-                    extra_meta = self.pre_tool_call_hook({
+                    extra_meta = await self.pre_tool_call_hook({
                         "server_name": server_name,
                         "local_tool_name": local_tool_name,
                         "arguments": arguments or {},
