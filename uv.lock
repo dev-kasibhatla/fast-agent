@@ -570,7 +570,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115.6" },
     { name = "google-genai", specifier = ">=1.33.0" },
     { name = "keyring", specifier = ">=24.3.1" },
-    { name = "mcp", specifier = "==1.14.0" },
+    { name = "mcp", git = "https://github.com/dev-kasibhatla/mcp-python-sdk" },
     { name = "openai", specifier = ">=1.106.1" },
     { name = "opentelemetry-distro", specifier = ">=0.55b0" },
     { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.7.0" },
@@ -1134,7 +1134,7 @@ wheels = [
 
 [[package]]
 name = "mcp"
-version = "1.14.0"
+version = "1.12.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },

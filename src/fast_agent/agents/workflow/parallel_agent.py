@@ -55,6 +55,7 @@ class ParallelAgent(LlmAgent):
         messages: List[PromptMessageExtended],
         request_params: Optional[RequestParams] = None,
         tools: List[Tool] | None = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageExtended:
         """
         Execute fan-out agents in parallel and aggregate their results with the fan-in agent.
@@ -71,7 +72,7 @@ class ParallelAgent(LlmAgent):
         with tracer.start_as_current_span(f"Parallel: '{self._name}' generate"):
             # Execute all fan-out agents in parallel
             responses: List[PromptMessageExtended] = await asyncio.gather(
-                *[agent.generate(messages, request_params) for agent in self.fan_out_agents]
+                *[agent.generate(messages, request_params, request_id=request_id) for agent in self.fan_out_agents]
             )
 
             # Extract the received message from the input

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from mcp import Tool
 from mcp.types import (
@@ -293,6 +293,7 @@ class OpenAILLM(FastAgentLLM[ChatCompletionMessageParam, ChatCompletionMessage])
         message: List[OpenAIMessage] | None,
         request_params: RequestParams | None = None,
         tools: List[Tool] | None = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageExtended:
         """
         Process a query using an LLM and available tools.
@@ -447,6 +448,7 @@ class OpenAILLM(FastAgentLLM[ChatCompletionMessageParam, ChatCompletionMessage])
         request_params: RequestParams | None = None,
         tools: List[Tool] | None = None,
         is_template: bool = False,
+        request_id: Optional[str] = None,
     ) -> PromptMessageExtended:
         # Determine effective params to respect use_history for this turn
         req_params = self.get_request_params(request_params)
@@ -482,7 +484,7 @@ class OpenAILLM(FastAgentLLM[ChatCompletionMessageParam, ChatCompletionMessage])
             # Do NOT persist; inline the full turn context to the provider call
             turn_messages = converted_prior + converted_last
 
-        return await self._openai_completion(turn_messages, req_params, tools)
+        return await self._openai_completion(turn_messages, req_params, tools,)
 
     def _prepare_api_request(
         self, messages, tools: List[ChatCompletionToolParam] | None, request_params: RequestParams

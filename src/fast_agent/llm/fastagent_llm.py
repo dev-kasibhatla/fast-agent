@@ -178,6 +178,7 @@ class FastAgentLLM(ContextDependent, FastAgentLLMProtocol, Generic[MessageParamT
         messages: List[PromptMessageExtended],
         request_params: RequestParams | None = None,
         tools: List[Tool] | None = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageExtended:
         """
         Generate a completion using normalized message lists.
@@ -211,7 +212,7 @@ class FastAgentLLM(ContextDependent, FastAgentLLMProtocol, Generic[MessageParamT
             _mcp_metadata_var.set(final_request_params.mcp_metadata)
 
         assistant_response: PromptMessageExtended = await self._apply_prompt_provider_specific(
-            messages, request_params, tools
+            messages, request_params, tools, request_id=request_id
         )
 
         self.usage_accumulator.count_tools(len(assistant_response.tool_calls or {}))
@@ -228,6 +229,7 @@ class FastAgentLLM(ContextDependent, FastAgentLLMProtocol, Generic[MessageParamT
         request_params: RequestParams | None = None,
         tools: List[Tool] | None = None,
         is_template: bool = False,
+        request_id: Optional[str] = None,
     ) -> PromptMessageExtended:
         """
         Provider-specific implementation of apply_prompt_template.
@@ -324,6 +326,7 @@ class FastAgentLLM(ContextDependent, FastAgentLLMProtocol, Generic[MessageParamT
         multipart_messages: List[PromptMessageExtended],
         model: Type[ModelT],
         request_params: RequestParams | None = None,
+        request_id: Optional[str] = None,
     ) -> Tuple[ModelT | None, PromptMessageExtended]:
         """Base class attempts to parse JSON - subclasses can use provider specific functionality"""
 
@@ -335,7 +338,7 @@ class FastAgentLLM(ContextDependent, FastAgentLLMProtocol, Generic[MessageParamT
                 request_params.response_format = schema
 
         result: PromptMessageExtended = await self._apply_prompt_provider_specific(
-            multipart_messages, request_params
+            multipart_messages, request_params, request_id=request_id
         )
         return self._structured_from_multipart(result, model)
 

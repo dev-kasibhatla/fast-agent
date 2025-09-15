@@ -240,6 +240,7 @@ class IterativePlanner(LlmAgent):
         messages: List[PromptMessageExtended],
         request_params: RequestParams | None = None,
         tools: List[Tool] | None = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageExtended:
         """
         Execute an orchestrated plan to process the input.

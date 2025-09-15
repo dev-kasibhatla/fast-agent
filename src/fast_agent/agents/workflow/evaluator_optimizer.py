@@ -108,6 +108,7 @@ class EvaluatorOptimizerAgent(LlmAgent):
         messages: List[PromptMessageExtended],
         request_params: RequestParams | None = None,
         tools: List[Tool] | None = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageExtended:
         """
         Generate a response through evaluation-guided refinement.

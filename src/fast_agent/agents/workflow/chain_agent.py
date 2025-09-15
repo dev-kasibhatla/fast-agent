@@ -59,6 +59,7 @@ class ChainAgent(LlmAgent):
         messages: List[PromptMessageExtended],
         request_params: Optional[RequestParams] = None,
         tools: List[Tool] | None = None,
+        request_id: Optional[str] = None,
     ) -> PromptMessageExtended:
         """
         Chain the request through multiple agents in sequence.
