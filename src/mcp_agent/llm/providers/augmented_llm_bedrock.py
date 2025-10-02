@@ -2,7 +2,7 @@ import json
 import os
 import re
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union
 
 from mcp.types import ContentBlock, TextContent
 from rich.text import Text
@@ -1570,6 +1570,7 @@ class BedrockAugmentedLLM(AugmentedLLM[BedrockMessageParam, BedrockMessage]):
         multipart_messages: List[PromptMessageMultipart],
         request_params: RequestParams | None = None,
         is_template: bool = False,
+        request_id: Optional[str] = None,
     ) -> PromptMessageMultipart:
         """Apply Bedrock-specific prompt formatting."""
         if not multipart_messages:
