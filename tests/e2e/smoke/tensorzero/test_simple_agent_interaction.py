@@ -1,6 +1,6 @@
 import pytest
 
-from mcp_agent.core.fastagent import FastAgent
+from fast_agent import FastAgent
 
 pytestmark = pytest.mark.usefixtures("tensorzero_docker_env", "chdir_to_tensorzero_example")
 
@@ -34,8 +34,8 @@ async def test_tensorzero_simple_agent_smoke():  # Removed unused project_root f
     async with fast.run() as agent_app:
         agent_instance = agent_app.simple_default
 
-        print(f"\nSending message to agent '{agent_instance.name}': '{message_to_send}'")
+        print(f"\nSending message to agent '{agent_instance._name}': '{message_to_send}'")
         await agent_instance.send(message_to_send)
-        print(f"Message sent successfully to '{agent_instance.name}'.")
+        print(f"Message sent successfully to '{agent_instance._name}'.")
 
     print("\nSimple agent interaction smoke test completed successfully.")
